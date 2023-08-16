@@ -1,7 +1,9 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.colors import ListedColormap
-
+from sklearn.model_selection import train_test_split
+from sklearn import datasets
+from sklearn.preprocessing import StandardScaler
 
 
 def plot_decision_region(X, y, classifier, resoloution=0.02):
@@ -49,3 +51,14 @@ def plot_decision_regions(X, y, classifier, test_idx = None, resoloution=0.02):
 
 def versiontuple(v):
     return tuple(map(int, (v.split("."))))
+
+def loadIris():
+    iris = datasets.load_iris()
+    X = iris.data[:, [2, 3]]
+    y = iris.target
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=1, stratify=y)
+    sc = StandardScaler()
+    sc.fit(X_train)
+    X_train_std = sc.transform(X_train)
+    X_test_std = sc.transform(X_test)
+    return X_train_std, X_test_std, y_train, y_test
