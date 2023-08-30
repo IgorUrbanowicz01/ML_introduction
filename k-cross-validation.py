@@ -1,12 +1,13 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from sklearn.svm import SVC
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.decomposition import PCA
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import make_pipeline
-from sklearn.model_selection import StratifiedKFold, cross_val_score, learning_curve, validation_curve
+from sklearn.model_selection import StratifiedKFold, cross_val_score, learning_curve, validation_curve, GridSearchCV
 
 
 if __name__ == '__main__':
@@ -18,6 +19,13 @@ if __name__ == '__main__':
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=1, stratify=y)
 
     parameter_range = [0.001, 0.01, 0.1, 1.0, 10.0, 100.0]
+    parameter_range2 = [0.0001, 0.001, 0.01, 0.1, 1.0, 10.0, 100.0, 1000.0]
+    param_grid = [{'svc__C': parameter_range2,
+                   'svc__kernel': ['linear']},
+                  {'svc__C': parameter_range2,
+                   'svc__gamma': parameter_range2,
+                   'svc__kernel': ['rfb']}
+                 ]
     kfold = StratifiedKFold(n_splits=10).split(X_train, y_train)
     pipe_lr = make_pipeline(StandardScaler(),
                             PCA(n_components=2),
@@ -26,6 +34,9 @@ if __name__ == '__main__':
     pipe_lr2 = make_pipeline(StandardScaler(),
                              LogisticRegression(penalty='l2', random_state=1, max_iter=1000))
     pipe_lr.fit(X_train, y_train)
+    pipe_scv = make_pipeline(StandardScaler(), SVC(random_state=1))
+    gs = GridSearchCV(estimator=pipe_scv, param_grid=param_grid,
+                      scoring='accuracy', cv=10, n_jobs=-1)
     y_pred = pipe_lr.predict(X_test)
 
     print('Dokładność testu: %.3f' % pipe_lr.score(X_test, y_test))
@@ -100,3 +111,7 @@ if __name__ == '__main__':
     plt.ylabel('Dokładność')
     plt.ylim([0.8, 1.03])
     plt.show()
+
+    gs.fit(X_train, y_train)
+    print(gs.best_score_)
+    print(gs.best_params_)
