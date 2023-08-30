@@ -1,11 +1,12 @@
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.decomposition import PCA
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import make_pipeline
-from sklearn.model_selection import StratifiedKFold, cross_val_score
+from sklearn.model_selection import StratifiedKFold, cross_val_score, learning_curve
 
 
 if __name__ == '__main__':
@@ -20,6 +21,9 @@ if __name__ == '__main__':
     pipe_lr = make_pipeline(StandardScaler(),
                             PCA(n_components=2),
                             LogisticRegression(random_state=1))
+
+    pipe_lr2 = make_pipeline(StandardScaler(),
+                             LogisticRegression(penalty='l2', random_state=1))
     pipe_lr.fit(X_train, y_train)
     y_pred = pipe_lr.predict(X_test)
 
@@ -37,3 +41,32 @@ if __name__ == '__main__':
                              y=y_train,
                              cv=10, n_jobs=1)
     print('Wynik dokładności sprawdzania: %s' % scores)
+
+    train_size, train_scores, test_scores = learning_curve(estimator=pipe_lr2, X=X_train, y=y_train,
+                                                           train_sizes=np.linspace(0.1, 1.0, 10),
+                                                           cv=10, n_jobs=-1)
+
+    train_mean = np.mean(train_scores, axis=1)
+    test_mean = np.mean(test_scores, axis=1)
+    train_std = np.std(train_scores, axis=1)
+    test_std = np.std(test_scores, axis=1)
+
+    plt.plot(train_size, train_mean, color='blue',
+             marker='o', markersize=5,
+             label='Dokładność uczenia')
+    plt.fill_between(train_size, train_mean + train_std,
+                     train_mean - train_std,
+                     alpha=0.15, color='blue')
+    plt.plot(train_size, test_mean, color='green',
+             linestyle='--',marker='s', markersize=5,
+             label='Dokładność walidacji')
+    plt.fill_between(train_size, test_mean + test_std,
+                     test_mean - test_std,
+                     alpha=0.15, color='green')
+
+    plt.grid()
+    plt.xlabel('Liczba próbek uczących')
+    plt.ylabel('Dokładność')
+    plt.legend(loc='lower right')
+    plt.ylim([0.8, 1.0])
+    plt.show()
