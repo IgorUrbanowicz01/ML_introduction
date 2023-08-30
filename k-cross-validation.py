@@ -6,7 +6,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.decomposition import PCA
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import make_pipeline
-from sklearn.model_selection import StratifiedKFold, cross_val_score, learning_curve
+from sklearn.model_selection import StratifiedKFold, cross_val_score, learning_curve, validation_curve
 
 
 if __name__ == '__main__':
@@ -17,13 +17,14 @@ if __name__ == '__main__':
     y = le.fit_transform(y)
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=1, stratify=y)
 
+    parameter_range = [0.001, 0.01, 0.1, 1.0, 10.0, 100.0]
     kfold = StratifiedKFold(n_splits=10).split(X_train, y_train)
     pipe_lr = make_pipeline(StandardScaler(),
                             PCA(n_components=2),
                             LogisticRegression(random_state=1))
 
     pipe_lr2 = make_pipeline(StandardScaler(),
-                             LogisticRegression(penalty='l2', random_state=1))
+                             LogisticRegression(penalty='l2', random_state=1, max_iter=1000))
     pipe_lr.fit(X_train, y_train)
     y_pred = pipe_lr.predict(X_test)
 
@@ -44,7 +45,7 @@ if __name__ == '__main__':
 
     train_size, train_scores, test_scores = learning_curve(estimator=pipe_lr2, X=X_train, y=y_train,
                                                            train_sizes=np.linspace(0.1, 1.0, 10),
-                                                           cv=10, n_jobs=-1)
+                                                           cv=10, n_jobs=1)
 
     train_mean = np.mean(train_scores, axis=1)
     test_mean = np.mean(test_scores, axis=1)
@@ -69,4 +70,33 @@ if __name__ == '__main__':
     plt.ylabel('Dokładność')
     plt.legend(loc='lower right')
     plt.ylim([0.8, 1.0])
+    plt.show()
+
+    train_scores, test_scores = validation_curve(estimator=pipe_lr2,
+                                 X=X_train, y=y_train, param_name='logisticregression__C',
+                                 param_range=parameter_range, cv=10)
+    train_mean = np.mean(train_scores, axis=1)
+    test_mean = np.mean(test_scores, axis=1)
+    train_std = np.std(train_scores, axis=1)
+    test_std = np.std(test_scores, axis=1)
+
+
+    plt.plot(parameter_range, train_mean, color='blue',
+             marker='o', markersize=5,
+             label='Dokładność uczenia')
+    plt.fill_between(parameter_range, train_mean + train_std,
+                     train_mean - train_std,
+                     alpha=0.15, color='blue')
+    plt.plot(parameter_range, test_mean, color='green',
+             linestyle='--', marker='s', markersize=5,
+             label='Dokładność walidacji')
+    plt.fill_between(parameter_range, test_mean + test_std,
+                     test_mean - test_std,
+                     alpha=0.15, color='green')
+    plt.grid()
+    plt.xscale('log')
+    plt.legend(loc='lower right')
+    plt.xlabel('Parameter C')
+    plt.ylabel('Dokładność')
+    plt.ylim([0.8, 1.03])
     plt.show()
