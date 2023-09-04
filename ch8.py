@@ -350,29 +350,6 @@ gs_lr_tfidf = GridSearchCV(lr_tfidf, param_grid,
                            verbose=1,
                            n_jobs=-1)
 
-# **Important Note about `n_jobs`**
-#
-# Please note that it is highly recommended to use `n_jobs=-1` (instead of `n_jobs=1`) in the previous code example to utilize all available cores on your machine and speed up the grid search. However, some Windows users reported issues when running the previous code with the `n_jobs=-1` setting related to pickling the tokenizer and tokenizer_porter functions for multiprocessing on Windows. Another workaround would be to replace those two functions, `[tokenizer, tokenizer_porter]`, with `[str.split]`. However, note that the replacement by the simple `str.split` would not support stemming.
-
-# **Important Note about the running time**
-#
-# Executing the following code cell **may take up to 30-60 min** depending on your machine, since based on the parameter grid we defined, there are 2*2*2*3*5 + 2*2*2*3*5 = 240 models to fit.
-#
-# If you do not wish to wait so long, you could reduce the size of the dataset by decreasing the number of training samples, for example, as follows:
-#
-#     X_train = df.loc[:2500, 'review'].values
-#     y_train = df.loc[:2500, 'sentiment'].values
-#
-# However, note that decreasing the training set size to such a small number will likely result in poorly performing models. Alternatively, you can delete parameters from the grid above to reduce the number of models to fit -- for example, by using the following:
-#
-#     param_grid = [{'vect__ngram_range': [(1, 1)],
-#                    'vect__stop_words': [stop, None],
-#                    'vect__tokenizer': [tokenizer],
-#                    'clf__penalty': ['l1', 'l2'],
-#                    'clf__C': [1.0, 10.0]},
-#                   ]
-
-
 ## @Readers: PLEASE IGNORE THIS CELL
 ##
 ## This cell is meant to generate more
