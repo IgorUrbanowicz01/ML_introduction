@@ -2,6 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
+from sklearn.preprocessing import StandardScaler
 
 class LinearRegressionGD:
 
@@ -17,7 +18,7 @@ class LinearRegressionGD:
             errors = (y - output)
             self.w_[1:] += self.eta * X.T.dot(errors)
             self.w_[0] += self.eta * errors.sum()
-            cost = (errors**2).sum / 2
+            cost = (errors**2).sum() / 2.0
             self.cost_.append(cost)
         return self
 
@@ -26,6 +27,11 @@ class LinearRegressionGD:
 
     def predict(self, X):
         return self.net_input(X)
+
+def lin_ragplot(X, y, model):
+    plt.scatter(X, y, c='steelblue', edgecolors='white', s=70)
+    plt.plot(X, model.predict(X), color='black', lw=2)
+    return None
 
 if __name__ == '__main__':
 
@@ -51,3 +57,21 @@ if __name__ == '__main__':
                      yticklabels=cols)
     plt.show()
 
+    X = df[['RM']].values
+    y = df['MEDV'].values
+    sc_x = StandardScaler()
+    sc_y = StandardScaler()
+    X_std = sc_x.fit_transform(X)
+    y_std = sc_y.fit_transform(y[:, np.newaxis]).flatten()
+    lr = LinearRegressionGD()
+    lr.fit(X_std, y_std)
+    sns.reset_orig()
+    plt.plot(range(1, lr.n_iter+1), lr.cost_)
+    plt.xlabel('Epos')
+    plt.ylabel('Sum of square errors')
+    plt.show()
+
+    lin_ragplot(X_std, y_std, lr)
+    plt.xlabel('Avrage rooms per Hause [RM] (standardize)')
+    plt.ylabel('Avrage price per Hause [MEDV] (standardize)')
+    plt.show()
