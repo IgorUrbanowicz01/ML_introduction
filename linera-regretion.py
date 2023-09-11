@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import RANSACRegressor, LinearRegression
 
 class LinearRegressionGD:
 
@@ -75,3 +76,9 @@ if __name__ == '__main__':
     plt.xlabel('Avrage rooms per Hause [RM] (standardize)')
     plt.ylabel('Avrage price per Hause [MEDV] (standardize)')
     plt.show()
+
+    ransac = RANSACRegressor(LinearRegression(),
+                             max_trials=100, min_samples=50,
+                             loss='absolute_loss', residual_threshold=5.0,
+                             random_state=0)
+    ransac.fit(X, y)
