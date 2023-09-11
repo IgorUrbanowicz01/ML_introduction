@@ -4,6 +4,8 @@ import seaborn as sns
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import RANSACRegressor, LinearRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error, r2_score
 
 class LinearRegressionGD:
 
@@ -79,6 +81,51 @@ if __name__ == '__main__':
 
     ransac = RANSACRegressor(LinearRegression(),
                              max_trials=100, min_samples=50,
-                             loss='absolute_loss', residual_threshold=5.0,
+                             loss='absolute_error', residual_threshold=5.0,
                              random_state=0)
     ransac.fit(X, y)
+    inliner_mask = ransac.inlier_mask_
+    outliner_mask = np.logical_not(inliner_mask)
+    line_X = np.arange(3, 10, 1)
+    line_y_ransac = ransac.predict(line_X[:, np.newaxis])
+    plt.scatter(X[inliner_mask], y[inliner_mask],
+                c = 'steelblue', edgecolors='white',
+                marker='o', label='Ptr. inline')
+    plt.scatter(X[outliner_mask], y[outliner_mask],
+                c='limegreen', edgecolors='black', lw=2,
+                marker='s', label='Ptr. outline')
+    plt.plot(line_X, line_y_ransac, color='black', lw=2)
+    plt.ylabel('Price int thousand dollars')
+    plt.xlabel('Average amount of rooms')
+    plt.legend(loc='upper right')
+    plt.show()
+
+    print('tilt: %.3f' % ransac.estimator_.coef_[0])
+    print('Cross point: %.3f' % ransac.estimator_.intercept_)
+
+    X = df.iloc[:, :-1].values
+    y = df['MEDV'].values
+    X_train, X_test, y_tain, y_test = train_test_split(X, y,
+                                                       train_size=0.3, random_state=0)
+    slr = LinearRegression()
+    slr.fit(X_train, y_tain)
+    y_train_predict = slr.predict(X_train)
+    y_test_predict = slr.predict(X_test)
+
+    plt.scatter(y_train_predict, y_train_predict - y_tain,
+                c='steelbule', marker='o', edgecolors='white',
+                label='Training data')
+    plt.scatter(y_test_predict, y_test_predict - y_tain,
+                c='limegreen', marker='s', edgecolors='white',
+                label='Testing data')
+    plt.xlabel('Expected values')
+    plt.ylabel('Residual values')
+    plt.legend(loc='upper right')
+    plt.hlines(y=0, xmin=-10, xmax=50, lw=2, color='black')
+    plt.xlim([-10, 50])
+    plt.show()
+
+    print('MSE for train data: %.f3, test data: %.3f' % (
+        mean_squared_error(y_tain, y_train_predict), mean_squared_error(y_test, y_test_predict)))
+    print('R^2 for train data: %.f3, test data: %.3f' % (
+        r2_score(y_tain, y_train_predict), r2_score(y_test, y_test_predict)))
