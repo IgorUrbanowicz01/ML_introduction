@@ -121,6 +121,7 @@ if __name__ == '__main__':
     plt.xlabel('Expected values')
     plt.ylabel('Residual values')
     plt.legend(loc='upper right')
+
     plt.hlines(y=0, xmin=-10, xmax=50, lw=2, color='black')
     plt.xlim([-10, 50])
     plt.show()
