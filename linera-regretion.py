@@ -109,6 +109,7 @@ if __name__ == '__main__':
                                                        train_size=0.3, random_state=0)
     slr = LinearRegression()
     slr.fit(X_train, y_tain)
+
     y_train_predict = slr.predict(X_train)
     y_test_predict = slr.predict(X_test)
 
